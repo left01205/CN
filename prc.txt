@@ -1,0 +1,490 @@
+✅ 1. Basic Commands of Networking (in Cisco Packet Tracer)
+🎯 Objective:
+Learn to use basic networking commands for testing and troubleshooting connectivity in a simulated network environment.
+
+🧰 Tools Required in Cisco Packet Tracer:
+2 or more PCs
+
+Switch
+
+Router (optional)
+
+Copper Straight-Through cables
+
+🛠️ Step-by-Step Procedure:
+Step 1: Set Up the Network
+Open Cisco Packet Tracer.
+
+Drag and drop:
+
+2 PCs from "End Devices".
+
+1 Switch from "Switches".
+
+Connect:
+
+PC0 → Switch → PC1 using copper straight-through cables.
+
+Step 2: Assign IP Addresses
+Click on PC0 > Desktop > IP Configuration:
+
+IP address: 192.168.1.1
+
+Subnet mask: 255.255.255.0
+
+Do the same for PC1:
+
+IP address: 192.168.1.2
+
+Subnet mask: 255.255.255.0
+
+Step 3: Use Basic Commands
+Go to Desktop > Command Prompt on PC0 and try:
+
+Command	Description
+ping 192.168.1.2	Checks connectivity with PC1
+ipconfig	Displays IP configuration of the PC
+tracert 192.168.1.2	Shows the route taken by packets
+arp -a	Displays the ARP table
+netstat	Displays active connections
+hostname	Shows the computer name
+
+🔎 Expected Result:
+
+Ping replies should be successful.
+
+ipconfig should display IP details.
+
+tracert will show direct route if devices are directly connected.
+
+✅ 3. Virtual LAN (VLAN) in Cisco Packet Tracer
+🎯 Objective:
+Create and configure multiple VLANs on a switch and allow communication within VLANs while isolating them from others.
+
+🧰 Setup:
+1 Switch
+
+3 PCs (PC0, PC1, PC2)
+
+🌐 Scenario:
+Create 2 VLANs:
+
+VLAN 10 (Engineering): PC0, PC1
+
+VLAN 20 (HR): PC2
+
+🛡️ Goal:
+
+PC0 and PC1 should communicate (same VLAN)
+
+PC2 should NOT be able to ping PC0 or PC1 (different VLAN)
+
+🛠️ Step-by-Step Procedure
+🔌 Step 1: Build the Topology
+Open Cisco Packet Tracer.
+
+Drag:
+
+1 Switch (2960)
+
+3 PCs
+
+Connect each PC to Switch FastEthernet ports using Copper Straight-Through cables.
+
+🧾 Step 2: Assign IP Addresses
+PC	IP Address	Subnet Mask	VLAN
+PC0	192.168.10.2	255.255.255.0	VLAN 10
+PC1	192.168.10.3	255.255.255.0	VLAN 10
+PC2	192.168.20.2	255.255.255.0	VLAN 20
+
+Configure this in Desktop > IP Configuration
+
+⚙️ Step 3: Configure VLANs on Switch
+Click the Switch > CLI and enter the following:
+
+bash
+Copy
+Edit
+enable
+conf t
+
+# Create VLANs
+vlan 10
+name Engineering
+exit
+
+vlan 20
+name HR
+exit
+
+# Assign VLANs to ports
+interface fastethernet 0/1
+switchport mode access
+switchport access vlan 10
+exit
+
+interface fastethernet 0/2
+switchport mode access
+switchport access vlan 10
+exit
+
+interface fastethernet 0/3
+switchport mode access
+switchport access vlan 20
+exit
+
+exit
+Assume:
+
+PC0 is connected to Fa0/1
+
+PC1 to Fa0/2
+
+PC2 to Fa0/3
+
+🔍 Step 4: Test the Setup
+Go to PC0 → Command Prompt:
+
+bash
+Copy
+Edit
+ping 192.168.10.3   # Should succeed (same VLAN)
+ping 192.168.20.2   # Should fail (different VLAN)
+Try from PC2:
+
+bash
+Copy
+Edit
+ping 192.168.10.2   # Should fail
+
+✅ 4. RIP – Routing Information Protocol in Cisco Packet Tracer
+🎯 Objective:
+Enable dynamic routing between two or more networks using RIP (Routing Information Protocol) to automatically share route information between routers.
+
+🧰 Setup:
+2 Routers (Router0, Router1)
+
+2 Switches
+
+4 PCs (2 on each side of the routers)
+
+Straight-through cables (for PC–Switch & Switch–Router)
+
+Serial/DCE cable (for Router–Router connection)
+
+🔧 Scenario:
+Network	Devices	IP Range
+Network A	PC0, PC1	192.168.1.0/24
+Network B	PC2, PC3	192.168.2.0/24
+Router-Router	Serial link	10.0.0.0/30
+
+🛠️ Step-by-Step Procedure
+🔌 Step 1: Build Topology
+csharp
+Copy
+Edit
+[PC0]--[SW0]--[R0]===R1--[SW1]--[PC2]
+[PC1]           |        |         [PC3]
+Legend:
+
+-- = copper straight-through
+
+=== = serial DCE cable
+
+🧾 Step 2: Assign IP Addresses
+🔹 PC IPs
+PC	IP Address	Subnet Mask	Gateway
+PC0	192.168.1.10	255.255.255.0	192.168.1.1
+PC1	192.168.1.11	255.255.255.0	192.168.1.1
+PC2	192.168.2.10	255.255.255.0	192.168.2.1
+PC3	192.168.2.11	255.255.255.0	192.168.2.1
+
+🔹 Router Interfaces
+Router	Interface	IP Address	Subnet Mask
+R0	G0/0	192.168.1.1	255.255.255.0
+R0	S0/0/0	10.0.0.1	255.255.255.252
+R1	G0/0	192.168.2.1	255.255.255.0
+R1	S0/0/0	10.0.0.2	255.255.255.252
+
+⚙️ Step 3: Configure Routers
+Router 0:
+bash
+Copy
+Edit
+enable
+conf t
+
+interface g0/0
+ip address 192.168.1.1 255.255.255.0
+no shutdown
+exit
+
+interface s0/0/0
+ip address 10.0.0.1 255.255.255.252
+clock rate 64000   # Only on DCE side
+no shutdown
+exit
+
+router rip
+version 2
+network 192.168.1.0
+network 10.0.0.0
+no auto-summary
+exit
+Router 1:
+bash
+Copy
+Edit
+enable
+conf t
+
+interface g0/0
+ip address 192.168.2.1 255.255.255.0
+no shutdown
+exit
+
+interface s0/0/0
+ip address 10.0.0.2 255.255.255.252
+no shutdown
+exit
+
+router rip
+version 2
+network 192.168.2.0
+network 10.0.0.0
+no auto-summary
+exit
+🔍 Step 4: Test Connectivity
+From PC0:
+
+bash
+Copy
+Edit
+ping 192.168.2.10   # Should be successful
+From PC2:
+
+bash
+Copy
+Edit
+ping 192.168.1.10   # Should also work
+
+✅ 5. OSPF (Open Shortest Path First) Protocol in Cisco Packet Tracer
+🎯 Objective:
+Configure OSPF (a link-state routing protocol) to enable efficient, dynamic routing between routers using areas and cost metrics.
+
+🧰 Setup:
+2 Routers (Router0, Router1)
+
+2 Switches
+
+4 PCs (2 on each side)
+
+Copper Straight-Through cables
+
+Serial/DCE cable
+
+📘 Scenario:
+Network	Devices	IP Range
+LAN A	PC0, PC1	192.168.1.0/24
+LAN B	PC2, PC3	192.168.2.0/24
+Router Link	Serial	10.0.0.0/30
+
+We'll use:
+
+OSPF Process ID = 1
+
+Area 0 (Backbone Area)
+
+🛠️ Step-by-Step OSPF Configuration
+🔌 Step 1: Build the Topology
+Same topology as in RIP setup:
+
+csharp
+Copy
+Edit
+[PC0]--[SW0]--[R0]===R1--[SW1]--[PC2]
+[PC1]           |        |         [PC3]
+🧾 Step 2: Assign IP Addresses
+🔹 PC IPs
+PC	IP Address	Subnet Mask	Gateway
+PC0	192.168.1.10	255.255.255.0	192.168.1.1
+PC1	192.168.1.11	255.255.255.0	192.168.1.1
+PC2	192.168.2.10	255.255.255.0	192.168.2.1
+PC3	192.168.2.11	255.255.255.0	192.168.2.1
+
+🔹 Router Interfaces
+Router	Interface	IP Address	Subnet Mask
+R0	G0/0	192.168.1.1	255.255.255.0
+R0	S0/0/0	10.0.0.1	255.255.255.252
+R1	G0/0	192.168.2.1	255.255.255.0
+R1	S0/0/0	10.0.0.2	255.255.255.252
+
+⚙️ Step 3: Configure Router Interfaces
+Router 0:
+bash
+Copy
+Edit
+enable
+conf t
+
+interface g0/0
+ip address 192.168.1.1 255.255.255.0
+no shutdown
+exit
+
+interface s0/0/0
+ip address 10.0.0.1 255.255.255.252
+clock rate 64000    # Only on DCE side
+no shutdown
+exit
+
+router ospf 1
+network 192.168.1.0 0.0.0.255 area 0
+network 10.0.0.0 0.0.0.3 area 0
+exit
+Router 1:
+bash
+Copy
+Edit
+enable
+conf t
+
+interface g0/0
+ip address 192.168.2.1 255.255.255.0
+no shutdown
+exit
+
+interface s0/0/0
+ip address 10.0.0.2 255.255.255.252
+no shutdown
+exit
+
+router ospf 1
+network 192.168.2.0 0.0.0.255 area 0
+network 10.0.0.0 0.0.0.3 area 0
+exit
+🔍 Step 4: Test the Network
+From PC0:
+
+bash
+Copy
+Edit
+ping 192.168.2.10   # Should be successful
+From PC2:
+
+bash
+Copy
+Edit
+ping 192.168.1.10   # Should also work
+✅ This confirms that OSPF routing is properly set up between routers.
+
+🧠 OSPF Notes:
+Feature	Description
+Metric	Cost (based on bandwidth)
+Fast Convergence	Quickly adapts to changes
+Area	Logical division to scale large networks
+Classless	Yes (supports VLSM and CIDR)
+
+✅ 6. BGP (Border Gateway Protocol) in Cisco Packet Tracer
+🎯 Objective:
+Configure BGP, a path-vector routing protocol used to route between autonomous systems (ASes)—typically in large-scale networks such as ISPs or enterprise edge routers.
+
+📌 Important Notes Before We Begin:
+BGP is rarely used in small LANs.
+
+In Packet Tracer, BGP is supported only in some router models (e.g., ISR 4321, 2811).
+
+Each router must be assigned to a different Autonomous System Number (ASN).
+
+🧰 Setup:
+2 Routers (RouterA and RouterB — each in different AS)
+
+2 PCs (one behind each router)
+
+Copper Straight-Through cables for PC–Router
+
+Serial/DCE cable between Routers
+
+🌐 Scenario:
+Device	Interface	IP Address	ASN
+RouterA	G0/0 → PC-A	192.168.10.1	65001
+RouterA	S0/0/0 → R-B	10.10.10.1	
+RouterB	G0/0 → PC-B	192.168.20.1	65002
+RouterB	S0/0/0 → R-A	10.10.10.2	
+
+PC	IP Address	Gateway
+PC-A	192.168.10.2	192.168.10.1
+PC-B	192.168.20.2	192.168.20.1
+
+🛠️ Step-by-Step BGP Configuration
+🔌 Step 1: Set Up Topology
+Connect:
+
+PC-A to RouterA G0/0
+
+PC-B to RouterB G0/0
+
+RouterA to RouterB via serial S0/0/0
+
+🧾 Step 2: Assign IP Addresses
+RouterA:
+bash
+Copy
+Edit
+enable
+conf t
+
+interface g0/0
+ip address 192.168.10.1 255.255.255.0
+no shutdown
+exit
+
+interface s0/0/0
+ip address 10.10.10.1 255.255.255.252
+clock rate 64000
+no shutdown
+exit
+RouterB:
+bash
+Copy
+Edit
+enable
+conf t
+
+interface g0/0
+ip address 192.168.20.1 255.255.255.0
+no shutdown
+exit
+
+interface s0/0/0
+ip address 10.10.10.2 255.255.255.252
+no shutdown
+exit
+🌍 Step 3: Configure BGP Routing
+RouterA (AS 65001):
+bash
+Copy
+Edit
+router bgp 65001
+neighbor 10.10.10.2 remote-as 65002
+network 192.168.10.0 mask 255.255.255.0
+exit
+RouterB (AS 65002):
+bash
+Copy
+Edit
+router bgp 65002
+neighbor 10.10.10.1 remote-as 65001
+network 192.168.20.0 mask 255.255.255.0
+exit
+🔍 Step 4: Test the Configuration
+From PC-A:
+bash
+Copy
+Edit
+ping 192.168.20.2   # Should be successful
+From PC-B:
+bash
+Copy
+Edit
+ping 192.168.10.2   # Should work too
